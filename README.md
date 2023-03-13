@@ -1,11 +1,11 @@
-# claviz_python_api
+# claviz-python-api
 
 Python API wrapper for Claviz.
 
 ## Installation
 
 ```
-pip3 install claviz_python_api
+pip3 install claviz-python-api
 ```
 
 ## Example
