@@ -1,4 +1,5 @@
 import requests
+import time
 
 from typing import List, Dict, Any, Optional
 
@@ -114,6 +115,33 @@ class ClavizClient:
     def stop_background_function(self, function_id: str) -> None:
          self.session.put(f"{self.url}/api/functionsManager/background/{function_id}/stop")
 
-    def execute_function(self, function_id: str, parameters: Dict[str, Any] = { }) -> Any:
+    def execute_function(self, function_id: str, parameters: Dict[str, Any] = { }, engine_name=None):
+        if engine_name:
+            parameters = {
+                'engineName': engine_name,
+                'functionId': function_id,
+                'parameters': parameters
+            }
+            function_id = "remoteRunner"
+
         response = self.session.post(f"{self.url}/api/functions/{function_id}", json=parameters)
+
+        if response.status_code == 202:
+            while True:
+                function_instance_status = self.get_function_instance_status(response.json()['functionInstanceId'])
+                if function_instance_status['status'] == 'success' or function_instance_status['status'] == 'error':
+                    self.destroy_function_instance(response.json()['functionInstanceId'])
+                if function_instance_status['status'] == 'success':
+                    return function_instance_status['result']
+                elif function_instance_status['status'] == 'error':
+                    raise Exception(function_instance_status['error'])
+                time.sleep(10)
+
         return response.json()
+
+    def get_function_instance_status(self, function_instance_id):
+        response = self.session.get(f"{self.url}/api/functions/functionInstances/{function_instance_id}")
+        return response.json()
+
+    def destroy_function_instance(self, function_instance_id):
+        self.session.delete(f"{self.url}/api/functions/functionInstances/{function_instance_id}")

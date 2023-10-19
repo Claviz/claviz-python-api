@@ -1,6 +1,6 @@
 [project]
 name = "claviz-python-api"
-version = "0.0.4"
+version = "0.0.7"
 description = "Python API wrapper for Claviz."
 readme = "README.md"
 requires-python = ">=3.7"
